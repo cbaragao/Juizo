@@ -6,8 +6,8 @@
   <DefaultLocale>en-US</DefaultLocale>
   <DisplayName DefaultValue="Juizo"/>
   <Description DefaultValue="Data tools for Excel"/>
-  <IconUrl DefaultValue="https://localhost:3000/assets/juizo32.png"/>
-  <HighResolutionIconUrl DefaultValue="https://localhost:3000/assets/juizo64.png"/>
+  <IconUrl DefaultValue="https://cbaragao.github.io/Juizo/assets/juizo32.png"/>
+  <HighResolutionIconUrl DefaultValue="https://cbaragao.github.io/Juizo/assets/juizo64.png"/>
   <SupportUrl DefaultValue="https://www.contoso.com/help"/>
   <AppDomains>
     <AppDomain>https://www.contoso.com</AppDomain>
@@ -16,7 +16,7 @@
     <Host Name="Workbook"/>
   </Hosts>
   <DefaultSettings>
-    <SourceLocation DefaultValue="https://localhost:3000/taskpane.html"/>
+    <SourceLocation DefaultValue="https://cbaragao.github.io/Juizo/taskpane.html"/>
   </DefaultSettings>
   <Permissions>ReadWriteDocument</Permissions>
   <VersionOverrides xmlns="http://schemas.microsoft.com/office/taskpaneappversionoverrides" xsi:type="VersionOverridesV1_0">
@@ -61,13 +61,13 @@
     </Hosts>
     <Resources>
       <bt:Images>
-        <bt:Image id="Icon.16x16" DefaultValue="https://localhost:3000/assets/juizo16.png"/>
-        <bt:Image id="Icon.32x32" DefaultValue="https://localhost:3000/assets/juizo32.png"/>
-        <bt:Image id="Icon.80x80" DefaultValue="https://localhost:3000/assets/juizo80.png"/>
+        <bt:Image id="Icon.16x16" DefaultValue="https://cbaragao.github.io/Juizo/assets/juizo16.png"/>
+        <bt:Image id="Icon.32x32" DefaultValue="https://cbaragao.github.io/Juizo/assets/juizo32.png"/>
+        <bt:Image id="Icon.80x80" DefaultValue="https://cbaragao.github.io/Juizo/assets/juizo80.png"/>
       </bt:Images>
       <bt:Urls>
         <bt:Url id="GetStarted.LearnMoreUrl" DefaultValue="https://go.microsoft.com/fwlink/?LinkId=276812"/>
-        <bt:Url id="Taskpane.Url" DefaultValue="https://localhost:3000/taskpane.html"/>
+        <bt:Url id="Taskpane.Url" DefaultValue="https://cbaragao.github.io/Juizo/taskpane.html"/>
       </bt:Urls>
       <bt:ShortStrings>
         <bt:String id="GetStarted.Title" DefaultValue="Get started with Juizo!"/>
