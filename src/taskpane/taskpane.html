@@ -1,0 +1,295 @@
+<!-- Copyright (c) Microsoft Corporation. All rights reserved. Licensed under the MIT License. -->
+<!-- This file shows how to design a first-run page that provides a welcome screen to the user about the features of the add-in. -->
+
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Juizo Add-in</title>
+
+    <!-- Office JavaScript API -->
+    <script type="text/javascript" src="https://appsforoffice.microsoft.com/lib/1/hosted/office.js"></script>
+
+    <!-- For more information on Fluent UI, visit https://developer.microsoft.com/fluentui#/. -->
+    <link rel="stylesheet" href="https://res-1.cdn.office.net/files/fabric-cdn-prod_20230815.002/office-ui-fabric-core/11.1.0/css/fabric.min.css"/>
+
+    <!-- Template styles -->
+    <link href="taskpane.css" rel="stylesheet" type="text/css" />
+</head>
+
+<body class="ms-font-m ms-welcome ms-Fabric">
+    <header class="ms-welcome__header ms-bgColor-neutralLighter">
+        <img width="90" height="90" src="../../assets/juizo.png" alt="Contoso" title="Contoso" />
+        <h1 class="ms-font-xl">Welcome to Juizo!</h1>
+    </header>
+    <section id="sideload-msg" class="ms-welcome__main">
+        <h2 class="ms-font-xl">Please <a target="_blank" href="https://learn.microsoft.com/office/dev/add-ins/testing/test-debug-office-add-ins#sideload-an-office-add-in-for-testing">sideload</a> your add-in to see app body.</h2>
+    </section>
+    <main id="app-body" class="ms-welcome__main" style="display: none;">
+
+        <!-- Arquero Editor Modal (Hidden by default) -->
+        <div id="arquero-editor" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: white; z-index: 1000; padding: 20px; box-sizing: border-box; overflow-y: auto;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h2 class="ms-font-xl" style="margin: 0;">Arquero Query Editor</h2>
+                <button id="close-arquero" class="ms-Button">Close</button>
+            </div>
+
+            <div class="ms-Grid" dir="ltr">
+                <div class="ms-Grid-row">
+                    <div class="ms-Grid-col ms-sm12">
+                        <label class="ms-Label">Source Data</label>
+                        <select id="table-select" class="ms-ComboBox" style="width: 100%; margin-bottom: 10px; padding: 5px;">
+                            <option value="">Loading tables...</option>
+                        </select>
+                        
+                        <div style="margin-top: 10px;">
+                            <label class="ms-Label">Or import from file(s) (CSV/JSON)</label>
+                            <input type="file" id="file-input" multiple accept=".csv,.json" />
+                        </div>
+                    </div>
+                </div>
+
+                <div class="ms-Grid-row">
+                    <div class="ms-Grid-col ms-sm12">
+                        <label class="ms-Label">Arquero Query (JavaScript)</label>
+                        <div class="ms-TextField-description">Use 'dt' as the input table. Example: dt.select('Column1', 'Column2').filter(d => d.Column1 > 10)</div>
+                        <textarea id="query-code" class="ms-TextField-field" style="width: 100%; height: 150px; font-family: monospace; resize: vertical; padding: 5px; border: 1px solid #a6a6a6;"></textarea>
+                    </div>
+                </div>
+
+                <div class="ms-Grid-row" style="margin-top: 10px;">
+                    <div class="ms-Grid-col ms-sm12">
+                        <label class="ms-Label">Output Table Name</label>
+                        <input id="output-table-name" class="ms-TextField-field" style="width: 100%; margin-bottom: 10px; padding: 5px;" placeholder="Enter unique table name" />
+                        
+                        <button id="run-preview" class="ms-Button ms-Button--primary">
+                            <span class="ms-Button-label">Preview Results</span>
+                        </button>
+                        <button id="save-output" class="ms-Button">
+                            <span class="ms-Button-label">Output to Excel</span>
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="ms-Grid-row" style="margin-top: 10px;">
+                    <div class="ms-Grid-col ms-sm12">
+                        <p class="ms-font-s">Note: Queries are automatically saved and linked to the Output Table Name. Select a table to load its query.</p>
+                        <div id="arquero-message" class="ms-font-m ms-fontColor-redDark"></div>
+                    </div>
+                </div>
+
+                <div class="ms-Grid-row" style="margin-top: 20px;">
+                    <div class="ms-Grid-col ms-sm12">
+                        <label class="ms-Label">Preview</label>
+                        <div id="preview-area" style="overflow: auto; max-height: 300px; border: 1px solid #ccc; padding: 10px;">
+                            Run preview to see results...
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Vega-Lite Editor Modal (Hidden by default) -->
+        <div id="vega-editor" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: white; z-index: 1000; padding: 20px; box-sizing: border-box; overflow-y: auto;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h2 class="ms-font-xl" style="margin: 0;">Vega-Lite Editor</h2>
+                <button id="close-vega" class="ms-Button">Close</button>
+            </div>
+
+            <div class="ms-Grid" dir="ltr">
+                <div class="ms-Grid-row">
+                    <div class="ms-Grid-col ms-sm12">
+                        <label class="ms-Label">Source Data</label>
+                        <select id="vega-table-select" class="ms-ComboBox" style="width: 100%; margin-bottom: 10px; padding: 5px;">
+                            <option value="">Loading tables...</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="ms-Grid-row">
+                    <div class="ms-Grid-col ms-sm12">
+                        <label class="ms-Label">Saved Charts</label>
+                        <select id="vega-spec-select" class="ms-ComboBox" style="width: 100%; margin-bottom: 10px; padding: 5px;">
+                            <option value="">-- New Chart --</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="ms-Grid-row">
+                    <div class="ms-Grid-col ms-sm12">
+                        <label class="ms-Label">Chart Name</label>
+                        <input id="vega-chart-name" class="ms-TextField-field" style="width: 100%; margin-bottom: 10px; padding: 5px;" placeholder="My Chart" />
+                    </div>
+                </div>
+
+                <div class="ms-Grid-row">
+                    <div class="ms-Grid-col ms-sm12">
+                        <label class="ms-Label">Vega-Lite Specification (JSON)</label>
+                        <div class="ms-TextField-description">Data is automatically injected. Use "data": {"name": "table"} in spec if needed, or omit data property to use default.</div>
+                        <textarea id="vega-spec" class="ms-TextField-field" style="width: 100%; height: 200px; font-family: monospace; resize: vertical; padding: 5px; border: 1px solid #a6a6a6;">{
+  "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+  "mark": "bar",
+  "encoding": {
+    "x": {"field": "a", "type": "nominal"},
+    "y": {"field": "b", "type": "quantitative"}
+  }
+}</textarea>
+                    </div>
+                </div>
+
+                <div class="ms-Grid-row" style="margin-top: 10px;">
+                    <div class="ms-Grid-col ms-sm12">
+                        <button id="run-vega-preview" class="ms-Button ms-Button--primary">
+                            <span class="ms-Button-label">Preview Chart</span>
+                        </button>
+                        <button id="save-vega-spec" class="ms-Button">
+                            <span class="ms-Button-label">Save Spec</span>
+                        </button>
+                        <button id="save-vega-chart" class="ms-Button">
+                            <span class="ms-Button-label">Save to Worksheet</span>
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="ms-Grid-row" style="margin-top: 10px;">
+                    <div class="ms-Grid-col ms-sm12">
+                        <div id="vega-message" class="ms-font-m ms-fontColor-redDark"></div>
+                    </div>
+                </div>
+
+                <div class="ms-Grid-row" style="margin-top: 20px;">
+                    <div class="ms-Grid-col ms-sm12">
+                        <label class="ms-Label">Preview</label>
+                        <div id="vega-preview-area" style="overflow: auto; min-height: 300px; border: 1px solid #ccc; padding: 10px;">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mermaid Editor Modal (Hidden by default) -->
+        <div id="mermaid-editor" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: white; z-index: 1000; padding: 20px; box-sizing: border-box; overflow-y: auto;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h2 class="ms-font-xl" style="margin: 0;">Mermaid Editor</h2>
+                <button id="close-mermaid" class="ms-Button">Close</button>
+            </div>
+
+            <div class="ms-Grid" dir="ltr">
+                <div class="ms-Grid-row">
+                    <div class="ms-Grid-col ms-sm12">
+                        <label class="ms-Label">Saved Diagrams</label>
+                        <select id="mermaid-spec-select" class="ms-ComboBox" style="width: 100%; margin-bottom: 10px; padding: 5px;">
+                            <option value="">-- New Diagram --</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="ms-Grid-row">
+                    <div class="ms-Grid-col ms-sm12">
+                        <label class="ms-Label">Diagram Name</label>
+                        <input id="mermaid-chart-name" class="ms-TextField-field" style="width: 100%; margin-bottom: 10px; padding: 5px;" placeholder="My Diagram" />
+                    </div>
+                </div>
+
+                <div class="ms-Grid-row">
+                    <div class="ms-Grid-col ms-sm12">
+                        <label class="ms-Label">Mermaid Code</label>
+                        <textarea id="mermaid-code" class="ms-TextField-field" style="width: 100%; height: 200px; font-family: monospace; resize: vertical; padding: 5px; border: 1px solid #a6a6a6;">graph TD;
+    A-->B;
+    A-->C;
+    B-->D;
+    C-->D;</textarea>
+                    </div>
+                </div>
+
+                <div class="ms-Grid-row" style="margin-top: 10px;">
+                    <div class="ms-Grid-col ms-sm12">
+                        <button id="run-mermaid-preview" class="ms-Button ms-Button--primary">
+                            <span class="ms-Button-label">Preview</span>
+                        </button>
+                        <button id="save-mermaid-spec" class="ms-Button">
+                            <span class="ms-Button-label">Save</span>
+                        </button>
+                        <button id="save-mermaid-chart" class="ms-Button">
+                            <span class="ms-Button-label">Insert into Worksheet</span>
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="ms-Grid-row" style="margin-top: 10px;">
+                    <div class="ms-Grid-col ms-sm12">
+                        <div id="mermaid-message" class="ms-font-m ms-fontColor-redDark"></div>
+                    </div>
+                </div>
+
+                <div class="ms-Grid-row" style="margin-top: 20px;">
+                    <div class="ms-Grid-col ms-sm12">
+                        <label class="ms-Label">Preview</label>
+                        <div id="mermaid-preview-area" style="overflow: auto; min-height: 300px; border: 1px solid #ccc; padding: 10px; text-align: center;">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="ms-Grid" dir="ltr" style="padding: 10px;">
+            <div class="ms-Grid-row" style="margin-bottom: 20px;">
+                <div class="ms-Grid-col ms-sm12">
+                    <h2 class="ms-font-l">Data Tools</h2>
+                    <p class="ms-font-s">Use the tools below to analyze and visualize your Excel data.</p>
+                </div>
+            </div>
+
+            <div class="ms-Grid-row" style="margin-bottom: 15px;">
+                <div class="ms-Grid-col ms-sm12">
+                    <div class="ms-Card" style="border: 1px solid #edebe9; padding: 15px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                        <h3 class="ms-font-m" style="margin-top: 0;">Arquero Query Editor</h3>
+                        <p class="ms-font-xs">Filter, transform, and aggregate data using JavaScript queries.</p>
+                        <button class="ms-Button ms-Button--primary" id="open-arquero" style="width: 100%;">
+                            <span class="ms-Button-label">Open Query Editor</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="ms-Grid-row">
+                <div class="ms-Grid-col ms-sm12">
+                    <div class="ms-Card" style="border: 1px solid #edebe9; padding: 15px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                        <h3 class="ms-font-m" style="margin-top: 0;">Vega-Lite Visualizations</h3>
+                        <p class="ms-font-xs">Create advanced charts and visualizations using Vega-Lite specs.</p>
+                        <button class="ms-Button ms-Button--primary" id="open-vega" style="width: 100%;">
+                            <span class="ms-Button-label">Open Chart Editor</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="ms-Grid-row" style="margin-top: 15px;">
+                <div class="ms-Grid-col ms-sm12">
+                    <div class="ms-Card" style="border: 1px solid #edebe9; padding: 15px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                        <h3 class="ms-font-m" style="margin-top: 0;">Mermaid Diagrams</h3>
+                        <p class="ms-font-xs">Create flowcharts, sequence diagrams, and more.</p>
+                        <button class="ms-Button ms-Button--primary" id="open-mermaid" style="width: 100%;">
+                            <span class="ms-Button-label">Open Mermaid Editor</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        
+        <!--End added section-->
+
+        
+    </main>
+    <!-- Loading Spinner Overlay -->
+    <div id="loading-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255, 255, 255, 0.8); z-index: 2000; justify-content: center; align-items: center; flex-direction: column;">
+        <div class="spinner"></div>
+        <div id="loading-message" class="ms-font-m" style="margin-top: 15px;">Processing...</div>
+    </div>
+</body>
+
+</html>

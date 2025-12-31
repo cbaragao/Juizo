@@ -1,0 +1,7 @@
+node_modules/
+dist/
+.vscode/
+.office-addin-dev-certs/
+package-lock.json
+*.log
+.DS_Store
