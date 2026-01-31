@@ -9,6 +9,11 @@ import * as aq from 'arquero';
 import vegaEmbed from 'vega-embed';
 import mermaid from 'mermaid';
 
+// Global state for Vega auto-update
+let vegaAutoUpdateHandler: OfficeExtension.EventHandlerResult<Excel.TableChangedEventArgs> = null;
+let vegaCurrentTableName: string = null;
+let vegaCurrentSpec: any = null;
+
 Office.onReady((info) => {
   if (info.host === Office.HostType.Excel) {
     // Enable extended error logging
@@ -22,10 +27,6 @@ Office.onReady((info) => {
     document.getElementById("close-arquero").onclick = closeArqueroEditor;
     document.getElementById("run-preview").onclick = runPreview;
     document.getElementById("save-output").onclick = outputToExcel;
-    document.getElementById("table-select").onchange = (e) => {
-        const tableName = (e.target as HTMLSelectElement).value;
-        loadQueryForTable(tableName);
-    };
 
     // Vega-Lite Event Listeners
     document.getElementById("open-vega").onclick = () => tryCatch(openVegaEditor);
@@ -110,11 +111,6 @@ function closeArqueroEditor() {
 async function openArqueroEditor(): Promise<void> {
     const editor = document.getElementById("arquero-editor");
     editor.style.display = "block";
-    
-    await loadTables();
-    
-    // Check if current selection is in a table and load its query
-    await checkSelectionForQuery();
 
     document.getElementById("close-arquero").onclick = () => {
         editor.style.display = "none";
@@ -122,107 +118,33 @@ async function openArqueroEditor(): Promise<void> {
     
     document.getElementById("run-preview").onclick = runPreview;
     document.getElementById("save-output").onclick = outputToExcel;
-    
-    // Add change listener to dropdown
-    document.getElementById("table-select").onchange = (e) => {
-        const tableName = (e.target as HTMLSelectElement).value;
-        loadQueryForTable(tableName);
-    };
-}
-
-async function checkSelectionForQuery() {
-    try {
-        await Excel.run(async (context) => {
-            const range = context.workbook.getSelectedRange();
-            const tables = range.getTables(false); // Get tables overlapping with selection
-            tables.load("items/name");
-            await context.sync();
-
-            if (tables.items.length > 0) {
-                const tableName = tables.items[0].name;
-                // Select in dropdown if it exists
-                const select = document.getElementById("table-select") as HTMLSelectElement;
-                if (select.querySelector(`option[value="${tableName}"]`)) {
-                    select.value = tableName;
-                    loadQueryForTable(tableName);
-                }
-            }
-        });
-    } catch (e) {
-        console.error("Error checking selection:", e);
-    }
-}
-
-async function loadQueryForTable(tableName: string) {
-    const savedQuery = Office.context.document.settings.get(tableName);
-    const textArea = document.getElementById("query-code") as HTMLTextAreaElement;
-    
-    if (savedQuery) {
-        textArea.value = savedQuery;
-    } else {
-        // Optional: Clear textarea or keep previous? 
-        // User might want to start fresh or keep editing. 
-        // Let's clear it to indicate no query exists for this specific table, 
-        // but only if we are switching context. 
-        // Actually, safer to NOT clear if it's empty, so user doesn't lose work.
-        // But if they select a table, they expect to see THAT table's query.
-        // I'll clear it if null to avoid confusion.
-        textArea.value = "";
-    }
-}
-
-async function loadTables() {
-    try {
-        await Excel.run(async (context) => {
-            const tables = context.workbook.tables;
-            tables.load("items/name");
-            await context.sync();
-
-            const select = document.getElementById("table-select") as HTMLSelectElement;
-            // Save current selection if any
-            const currentVal = select.value;
-            select.innerHTML = "";
-            
-            tables.items.forEach(table => {
-                const option = document.createElement("option");
-                option.value = table.name;
-                option.text = table.name;
-                select.appendChild(option);
-            });
-            
-            if (currentVal && select.querySelector(`option[value="${currentVal}"]`)) {
-                select.value = currentVal;
-            }
-        });
-    } catch (error) {
-        console.error(error);
-    }
 }
 
 async function getArqueroTableFromExcel(tableName: string) {
-    let data: any[] = [];
+    let arqueroTable;
     await Excel.run(async (context) => {
         const table = context.workbook.tables.getItem(tableName);
-        const range = table.getDataBodyRange();
         const headerRange = table.getHeaderRowRange();
+        const dataRange = table.getDataBodyRange();
         
-        range.load("values");
         headerRange.load("values");
+        dataRange.load("values");
+        
+        // Single sync for both header and data
         await context.sync();
 
         const headers = headerRange.values[0];
-        const rows = range.values;
+        const rows = dataRange.values;
 
-        // Convert to array of objects for Arquero
-        data = rows.map(row => {
-            let obj = {};
-            headers.forEach((header, index) => {
-                obj[header] = row[index];
-            });
-            return obj;
+        // Use columnar format for Arquero (much faster than row-wise objects)
+        const columnData = {};
+        headers.forEach((header, colIndex) => {
+            columnData[header] = rows.map(row => row[colIndex]);
         });
+        
+        arqueroTable = aq.table(columnData);
     });
-    return aq.from(data);
+    return arqueroTable;
 }
 
 async function runPreview() {
@@ -436,9 +358,6 @@ async function outputToExcel() {
         }
         
         if (messageArea) messageArea.innerText = `Success! Table '${outputTableName}' created.`;
-        
-        // Refresh table list so the new table appears in dropdown
-        await loadTables();
 
     } catch (error) {
         console.error("Main Error:", error);
@@ -453,62 +372,29 @@ async function outputToExcel() {
 }
 
 async function getTableData() {
-    const fileInput = document.getElementById("file-input") as HTMLInputElement;
-    const tableName = (document.getElementById("table-select") as HTMLSelectElement).value;
-
-    if (fileInput.files && fileInput.files.length > 0) {
-        return await getArqueroTableFromFiles(fileInput.files);
-    } else if (tableName) {
-        return await getArqueroTableFromExcel(tableName);
-    }
-    throw new Error("Please select a table or upload files.");
-}
-
-async function getArqueroTableFromFiles(files: FileList) {
-    let combinedData: any[] = [];
+    let tableName: string = null;
     
-    for (let i = 0; i < files.length; i++) {
-        const file = files[i];
-        const text = await readFileAsText(file);
-        
-        let table;
-        if (file.name.toLowerCase().endsWith('.csv')) {
-            table = aq.fromCSV(text);
-        } else if (file.name.toLowerCase().endsWith('.json')) {
-            const json = JSON.parse(text);
-            table = aq.from(json);
+    // Try to get the active table from the current selection
+    await Excel.run(async (context) => {
+        try {
+            const activeCell = context.workbook.getActiveCell();
+            const tables = activeCell.getTables(false);
+            tables.load("items/name");
+            await context.sync();
+            
+            if (tables.items.length > 0) {
+                tableName = tables.items[0].name;
+            }
+        } catch (error) {
+            console.error("Error getting active table:", error);
         }
-        
-        if (table) {
-            // Ensure data is flat objects, not nested
-            const objects = table.objects();
-            // Sanitize objects to ensure they are compatible with Excel (no nested objects/arrays)
-            const sanitized = objects.map(obj => {
-                const newObj = {};
-                for (const key in obj) {
-                    const val = obj[key];
-                    if (typeof val === 'object' && val !== null && !(val instanceof Date)) {
-                        newObj[key] = JSON.stringify(val);
-                    } else {
-                        newObj[key] = val;
-                    }
-                }
-                return newObj;
-            });
-            combinedData = combinedData.concat(sanitized);
-        }
-    }
-    
-    return aq.from(combinedData);
-}
-
-function readFileAsText(file: File): Promise<string> {
-    return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = (e) => resolve(e.target.result as string);
-        reader.onerror = (e) => reject(e);
-        reader.readAsText(file);
     });
+    
+    if (!tableName) {
+        throw new Error("No table selected. Please click on a cell within an Excel table and try again.");
+    }
+    
+    return await getArqueroTableFromExcel(tableName);
 }
 
 async function sortTable(tableName: string, columnName: string, direction: string) {
@@ -578,8 +464,23 @@ async function openVegaEditor(): Promise<void> {
     await checkSelectionForVega();
 }
 
-function closeVegaEditor() {
+async function closeVegaEditor() {
+    // Clean up auto-update event handler
+    if (vegaAutoUpdateHandler) {
+        await Excel.run(async (context) => {
+            vegaAutoUpdateHandler.remove();
+            await context.sync();
+        }).catch(err => console.error("Error removing event handler:", err));
+        vegaAutoUpdateHandler = null;
+        vegaCurrentTableName = null;
+        vegaCurrentSpec = null;
+    }
+    
     document.getElementById("vega-editor").style.display = "none";
+    
+    // Clear status indicator
+    const statusDiv = document.getElementById("vega-auto-update-status");
+    if (statusDiv) statusDiv.style.display = "none";
 }
 
 async function loadVegaTables() {
@@ -719,22 +620,15 @@ async function runVegaPreview() {
         console.log("Parsing spec...");
         const spec = JSON.parse(specStr);
         
-        console.log(`Fetching data for table: ${tableName}`);
-        // Get Data
-        const dt = await getArqueroTableFromExcel(tableName);
-        const dataObjects = dt.objects();
-        console.log(`Data fetched. Rows: ${dataObjects.length}`);
+        // Store current spec for auto-update
+        vegaCurrentSpec = spec;
+        vegaCurrentTableName = tableName;
         
-        // Inject data if not present or if placeholder used
-        if (!spec.data || spec.data.name === "table") {
-             spec.data = { values: dataObjects };
-        }
-
-        console.log("Embedding chart...");
-        // Render
-        await vegaEmbed('#vega-preview-area', spec, { actions: false });
-        console.log("Chart rendered.");
-        if (messageArea) messageArea.innerText = "";
+        // Render chart with current data
+        await renderVegaChart(tableName, spec, messageArea);
+        
+        // Set up auto-update if table changed or no handler exists
+        await setupVegaAutoUpdate(tableName, messageArea);
 
     } catch (e) {
         console.error("Vega Preview Error:", e);
@@ -742,6 +636,63 @@ async function runVegaPreview() {
     }
     } finally {
         hideSpinner();
+    }
+}
+
+async function renderVegaChart(tableName: string, spec: any, messageArea?: HTMLElement) {
+    console.log(`Fetching data for table: ${tableName}`);
+    // Get Data
+    const dt = await getArqueroTableFromExcel(tableName);
+    const dataObjects = dt.objects();
+    console.log(`Data fetched. Rows: ${dataObjects.length}`);
+    
+    // Inject data if not present or if placeholder used
+    if (!spec.data || spec.data.name === "table") {
+         spec.data = { values: dataObjects };
+    }
+
+    console.log("Embedding chart...");
+    // Render
+    await vegaEmbed('#vega-preview-area', spec, { actions: false });
+    console.log("Chart rendered.");
+    if (messageArea) messageArea.innerText = "";
+}
+
+async function setupVegaAutoUpdate(tableName: string, messageArea?: HTMLElement) {
+    // Remove existing handler if table changed
+    if (vegaAutoUpdateHandler && vegaCurrentTableName !== tableName) {
+        await Excel.run(async (context) => {
+            vegaAutoUpdateHandler.remove();
+            await context.sync();
+        }).catch(err => console.error("Error removing old handler:", err));
+        vegaAutoUpdateHandler = null;
+    }
+    
+    // Add new handler if needed
+    if (!vegaAutoUpdateHandler) {
+        await Excel.run(async (context) => {
+            const table = context.workbook.tables.getItem(tableName);
+            
+            vegaAutoUpdateHandler = table.onChanged.add(async (event) => {
+                console.log(`Table '${tableName}' changed, auto-updating chart...`);
+                try {
+                    await renderVegaChart(vegaCurrentTableName, vegaCurrentSpec, messageArea);
+                    console.log("Chart auto-updated successfully.");
+                } catch (err) {
+                    console.error("Error auto-updating chart:", err);
+                }
+            });
+            
+            await context.sync();
+            console.log(`Auto-update enabled for table '${tableName}'`);
+            
+            // Show status indicator
+            const statusDiv = document.getElementById("vega-auto-update-status");
+            if (statusDiv) {
+                statusDiv.innerText = `🔄 Auto-update active for table: ${tableName}`;
+                statusDiv.style.display = "block";
+            }
+        });
     }
 }
 // Mermaid Logic
