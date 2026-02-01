@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<OfficeApp xmlns="http://schemas.microsoft.com/office/appforoffice/1.1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:bt="http://schemas.microsoft.com/office/officeappbasictypes/1.0" xmlns:ov="http://schemas.microsoft.com/office/taskpaneappversionoverrides" xsi:type="TaskPaneApp">
+  <Id>d13dd817-f38f-48f2-9463-7d1c9a7fd4f2</Id>
+  <Version>1.0.0.0</Version>
+  <ProviderName>Chris Aragao</ProviderName>
+  <DefaultLocale>en-US</DefaultLocale>
+  <DisplayName DefaultValue="Juizo"/>
+  <Description DefaultValue="Using Arquero, Vega-Lite, and Mermaid to power analysts with tools for data processing, visualizations, and process mapping."/>
+  <IconUrl DefaultValue="https://cbaragao.github.io/Juizo/assets/juizo32.png"/>
+  <HighResolutionIconUrl DefaultValue="https://cbaragao.github.io/Juizo/assets/juizo64.png"/>
+  <SupportUrl DefaultValue="https://github.com/cbaragao/Juizo/issues"/>
+  <AppDomains>
+    <AppDomain>https://cbaragao.github.io</AppDomain>
+  </AppDomains>
+  <Hosts>
+    <Host Name="Workbook"/>
+  </Hosts>
+  <DefaultSettings>
+    <SourceLocation DefaultValue="https://cbaragao.github.io/Juizo/taskpane.html"/>
+  </DefaultSettings>
+  <Permissions>ReadWriteDocument</Permissions>
+  <VersionOverrides xmlns="http://schemas.microsoft.com/office/taskpaneappversionoverrides" xsi:type="VersionOverridesV1_0">
+    <Hosts>
+      <Host xsi:type="Workbook">
+        <DesktopFormFactor>
+          <GetStarted>
+            <Title resid="GetStarted.Title"/>
+            <Description resid="GetStarted.Description"/>
+            <LearnMoreUrl resid="GetStarted.LearnMoreUrl"/>
+          </GetStarted>
+          <ExtensionPoint xsi:type="PrimaryCommandSurface">
+            <OfficeTab id="TabHome">
+              <Group id="JuizoGroup">
+                <Label resid="JuizoGroup.Label"/>
+                <Icon>
+                  <bt:Image size="16" resid="Icon.16x16"/>
+                  <bt:Image size="32" resid="Icon.32x32"/>
+                  <bt:Image size="80" resid="Icon.80x80"/>
+                </Icon>
+                <Control xsi:type="Button" id="TaskpaneButton">
+                  <Label resid="TaskpaneButton.Label"/>
+                  <Supertip>
+                    <Title resid="TaskpaneButton.Label"/>
+                    <Description resid="TaskpaneButton.Tooltip"/>
+                  </Supertip>
+                  <Icon>
+                    <bt:Image size="16" resid="Icon.16x16"/>
+                    <bt:Image size="32" resid="Icon.32x32"/>
+                    <bt:Image size="80" resid="Icon.80x80"/>
+                  </Icon>
+                  <Action xsi:type="ShowTaskpane">
+                    <TaskpaneId>ButtonId1</TaskpaneId>
+                    <SourceLocation resid="Taskpane.Url"/>
+                  </Action>
+                </Control>
+              </Group>
+            </OfficeTab>
+          </ExtensionPoint>
+        </DesktopFormFactor>
+      </Host>
+    </Hosts>
+    <Resources>
+      <bt:Images>
+        <bt:Image id="Icon.16x16" DefaultValue="https://cbaragao.github.io/Juizo/assets/juizo16.png"/>
+        <bt:Image id="Icon.32x32" DefaultValue="https://cbaragao.github.io/Juizo/assets/juizo32.png"/>
+        <bt:Image id="Icon.80x80" DefaultValue="https://cbaragao.github.io/Juizo/assets/juizo80.png"/>
+      </bt:Images>
+      <bt:Urls>
+        <bt:Url id="GetStarted.LearnMoreUrl" DefaultValue="https://go.microsoft.com/fwlink/?LinkId=276812"/>
+        <bt:Url id="Taskpane.Url" DefaultValue="https://cbaragao.github.io/Juizo/taskpane.html"/>
+        <bt:Url id="PrivacyUrl" DefaultValue="https://cbaragao.github.io/Juizo/privacy.html"/>
+        <bt:Url id="TermsOfUseUrl" DefaultValue="https://cbaragao.github.io/Juizo/terms.html"/>
+      </bt:Urls>
+      <bt:ShortStrings>
+        <bt:String id="GetStarted.Title" DefaultValue="Get started with Juizo!"/>
+        <bt:String id="JuizoGroup.Label" DefaultValue="Juizo"/>
+        <bt:String id="TaskpaneButton.Label" DefaultValue="Open Juizo"/>
+      </bt:ShortStrings>
+      <bt:LongStrings>
+        <bt:String id="GetStarted.Description" DefaultValue="Juizo loaded successfully. Go to the Home tab to open and get started."/>
+        <bt:String id="TaskpaneButton.Tooltip" DefaultValue="Click to open Juizo."/>
+      </bt:LongStrings>
+    </Resources>
+  </VersionOverrides>
+</OfficeApp>

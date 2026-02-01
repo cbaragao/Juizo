@@ -1,0 +1,1 @@
+"use strict";(self.webpackChunkoffice_addin_taskpane=self.webpackChunkoffice_addin_taskpane||[]).push([[366],{86366:function(e,c,n){n.d(c,{createArchitectureServices:function(){return a.S}});var a=n(38980);n(37425)}}]);

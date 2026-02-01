@@ -1,0 +1,159 @@
+/* 
+ * Copyright (c) Microsoft Corporation. All rights reserved. Licensed under the MIT license.
+ * See LICENSE in the project root for license information.
+ */
+
+ html,
+ body {
+     width: 100%;
+     height: 100%;
+     margin: 0;
+     padding: 0;
+     box-sizing: border-box;
+ }
+
+ *, *:before, *:after {
+    box-sizing: inherit;
+ }
+
+ summary {
+    background-color: forestgreen;
+    color:white;
+    cursor: pointer;
+    padding: 20px;
+    border-radius: 4px;
+    /* 1. Hide the default marker */
+    list-style: none; 
+    display: flex; /* Use flex to align text and arrow */
+    justify-content: space-between; /* Push arrow to the right */
+    align-items: center;
+}
+
+/* 1b. Hide marker for Webkit browsers (Chrome/Edge/Safari) */
+summary::-webkit-details-marker {
+    display: none;
+}
+
+/* 2. Add the custom arrow */
+summary::after {
+    content: "\276F"; 
+    transition: transform 0.2s ease; /* Smooth rotation */
+    font-weight: bold;
+    transform: rotate(-90deg);
+}
+
+details {
+    margin: 0;
+    width: inherit;
+}
+
+details[open] {
+    background-color: lightgray;
+    align-items: center;
+
+}
+
+details[open] > summary::after {
+    transform: rotate(90deg);
+}
+
+details > p {
+    align-items: center;
+}
+
+ ul {
+     margin: 0;
+     padding: 0;
+ }
+
+ .ms-welcome__header {
+    padding: 20px;
+    padding-bottom: 30px;
+    padding-top: 100px;
+    display: -webkit-flex;
+    display: flex;
+    -webkit-flex-direction: column;
+    flex-direction: column;
+    align-items: center;
+ }
+
+ .ms-welcome__main {
+    display: -webkit-flex;
+    display: flex;
+    -webkit-flex-direction: column;
+    flex-direction: column;
+    -webkit-flex-wrap: nowrap;
+    flex-wrap: nowrap;
+    -webkit-align-items: center;
+    align-items: stretch;
+    -webkit-flex: 1 0 0;
+    flex: 1 0 0;
+    
+    padding: 10px 20px;
+ }
+   
+ .ms-welcome__main > h2 {
+     width: 100%;
+     text-align: center;
+ }
+ 
+ .ms-welcome__features {
+     list-style-type: none;
+     margin-top: 20px;
+ }
+
+ .ms-welcome__features.ms-List .ms-ListItem {
+     padding-bottom: 20px;
+     display: -webkit-flex;
+     display: flex;
+ }
+ 
+ .ms-welcome__features.ms-List .ms-ListItem > .ms-Icon {
+     margin-right: 10px;
+ }
+ 
+ .ms-welcome__action.ms-Button--hero {
+     margin-top: 30px;
+ }
+ 
+.ms-Button.ms-Button--hero .ms-Button-label {
+  color: #0078d7;
+}
+
+.ms-Button.ms-Button--hero:hover .ms-Button-label,
+.ms-Button.ms-Button--hero:focus .ms-Button-label{
+  color: #005a9e;
+  cursor: pointer;
+}
+
+b {
+    font-weight: bold;
+}
+
+.spinner {
+    border: 4px solid #f3f3f3;
+    border-top: 4px solid #0078d4;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+#run-vega-preview {
+    margin-top: 20px;
+    margin-right: 20px;
+}
+
+#file-input, #save-mermaid-spec, #run-mermaid-preview {
+    margin-top: 20px;
+    margin-bottom: 20px;
+}
+
+#run-mermaid-preview {
+    margin-right: 25px;
+}

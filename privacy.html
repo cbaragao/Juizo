@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Privacy Policy - Juizo</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            color: #333;
+        }
+        h1 { color: #0078d4; }
+        h2 { color: #106ebe; margin-top: 30px; }
+        .last-updated { color: #666; font-style: italic; }
+    </style>
+</head>
+<body>
+    <h1>Privacy Policy for Juizo</h1>
+    <p class="last-updated">Last Updated: January 31, 2026</p>
+
+    <h2>1. Introduction</h2>
+    <p>
+        Juizo ("we", "our", or "the add-in") is a Microsoft Excel add-in developed by Chris Aragao. 
+        This Privacy Policy explains how we handle information when you use Juizo.
+    </p>
+
+    <h2>2. Information We Collect</h2>
+    <p>
+        <strong>We do not collect, store, or transmit any personal information or data.</strong>
+    </p>
+    <p>
+        Juizo operates entirely within your local Excel environment:
+    </p>
+    <ul>
+        <li>All data processing happens locally on your device</li>
+        <li>Your Excel data never leaves your computer</li>
+        <li>No analytics, tracking, or telemetry is collected</li>
+        <li>No user accounts or authentication required</li>
+        <li>No data is sent to external servers</li>
+    </ul>
+
+    <h2>3. How Juizo Works</h2>
+    <p>
+        Juizo is a client-side application that:
+    </p>
+    <ul>
+        <li>Loads as a task pane within Excel</li>
+        <li>Processes your Excel table data using JavaScript libraries (Arquero, Vega-Lite, Mermaid)</li>
+        <li>Displays visualizations and transformations within Excel</li>
+        <li>Stores query and chart specifications locally in Excel document settings</li>
+    </ul>
+
+    <h2>4. Local Storage</h2>
+    <p>
+        Juizo uses Excel's document settings API to save:
+    </p>
+    <ul>
+        <li>Your Arquero queries (associated with specific tables)</li>
+        <li>Your Vega-Lite chart specifications</li>
+        <li>Your Mermaid diagram definitions</li>
+    </ul>
+    <p>
+        This data is stored within your Excel workbook file and remains under your control.
+    </p>
+
+    <h2>5. Code Execution</h2>
+    <p>
+        <strong>Important Security Notice:</strong> The Arquero Query Editor allows you to write and execute 
+        JavaScript code to transform your data. This code:
+    </p>
+    <ul>
+        <li>Executes locally in your browser environment</li>
+        <li>Has access only to the Excel table data you select</li>
+        <li>Is executed by you, for your own use</li>
+        <li>Is not transmitted, stored, or reviewed by us</li>
+    </ul>
+    <p>
+        <strong>You are responsible for the code you write and execute.</strong> Only run code from trusted sources.
+    </p>
+
+    <h2>6. Third-Party Libraries</h2>
+    <p>
+        Juizo includes the following open-source JavaScript libraries that run client-side:
+    </p>
+    <ul>
+        <li><strong>Arquero</strong> - Data transformation (BSD 3-Clause License)</li>
+        <li><strong>Vega-Lite</strong> - Data visualization (BSD 3-Clause License)</li>
+        <li><strong>Mermaid</strong> - Diagram generation (MIT License)</li>
+    </ul>
+    <p>
+        These libraries are bundled with the add-in and do not collect or transmit data.
+    </p>
+
+    <h2>7. Microsoft Office Integration</h2>
+    <p>
+        Juizo uses the Microsoft Office JavaScript API to:
+    </p>
+    <ul>
+        <li>Read data from Excel tables</li>
+        <li>Write transformed data back to Excel</li>
+        <li>Insert charts and diagrams as images</li>
+        <li>Save settings within Excel documents</li>
+    </ul>
+    <p>
+        These operations are subject to Microsoft's Excel and Office 365 privacy policies.
+    </p>
+
+    <h2>8. Changes to This Policy</h2>
+    <p>
+        We may update this Privacy Policy from time to time. Any changes will be posted at 
+        <a href="https://cbaragao.github.io/Juizo/privacy.html">https://cbaragao.github.io/Juizo/privacy.html</a> 
+        with an updated "Last Updated" date.
+    </p>
+
+    <h2>9. Contact</h2>
+    <p>
+        If you have questions or concerns about this Privacy Policy, please contact us via:
+    </p>
+    <ul>
+        <li>GitHub Issues: <a href="https://github.com/cbaragao/Juizo/issues">https://github.com/cbaragao/Juizo/issues</a></li>
+    </ul>
+
+    <h2>10. Your Rights</h2>
+    <p>
+        Since Juizo does not collect any personal data, there is no data for us to access, modify, or delete. 
+        You have complete control over:
+    </p>
+    <ul>
+        <li>Your Excel data (managed through Excel)</li>
+        <li>Saved queries and specifications (stored in your Excel workbook)</li>
+        <li>The add-in itself (can be uninstalled at any time)</li>
+    </ul>
+
+    <hr style="margin-top: 40px;">
+    <p style="text-align: center; color: #666; font-size: 14px;">
+        © 2026 Chris Aragao. Juizo is an independent project and is not affiliated with or endorsed by Microsoft Corporation.
+    </p>
+</body>
+</html>
