@@ -81,6 +81,14 @@ module.exports = async (env, options) => {
               }
             },
           },
+          {
+            from: "privacy.html",
+            to: "privacy.html",
+          },
+          {
+            from: "terms.html",
+            to: "terms.html",
+          },
         ],
       })
     ],
