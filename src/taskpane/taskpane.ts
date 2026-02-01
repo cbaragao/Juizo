@@ -864,7 +864,7 @@ async function saveMermaidChart() {
         console.log("Inserting image into Excel...");
         await Excel.run(async (context) => {
             const sheet = context.workbook.worksheets.getActiveWorksheet();
-            const image = sheet.shapes.addImage(base64);
+            const image = sheet.shapes.addImage(`data:image/svg+xml;base64,${base64}`);
             image.name = (document.getElementById("mermaid-chart-name") as HTMLInputElement).value || "MermaidDiagram";
             await context.sync();
         });
@@ -969,7 +969,7 @@ async function saveVegaChart() {
         console.log("Inserting image into Excel...");
         await Excel.run(async (context) => {
             const sheet = context.workbook.worksheets.getActiveWorksheet();
-            const image = sheet.shapes.addImage(base64);
+            const image = sheet.shapes.addImage(`data:image/svg+xml;base64,${base64}`);
             image.name = (document.getElementById("vega-chart-name") as HTMLInputElement).value || "VegaChart";
             await context.sync();
         });
