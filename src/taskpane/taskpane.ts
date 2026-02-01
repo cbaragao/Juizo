@@ -889,6 +889,11 @@ async function saveMermaidChart() {
         console.log("PNG data URI created, length:", pngDataUri.length);
         console.log("PNG data URI prefix:", pngDataUri.substring(0, 50));
         
+        // Extract raw base64 string (Excel expects base64 only, not data URI)
+        const base64Image = pngDataUri.substring(pngDataUri.indexOf(',') + 1);
+        console.log("Base64 string extracted, length:", base64Image.length);
+        console.log("Base64 prefix (should be PNG signature):", base64Image.substring(0, 20));
+        
         console.log("Inserting image into Excel...");
         await Excel.run(async (context) => {
             const sheet = context.workbook.worksheets.getActiveWorksheet();
@@ -897,7 +902,7 @@ async function saveMermaidChart() {
             const imageName = (document.getElementById("mermaid-chart-name") as HTMLInputElement).value || "MermaidDiagram";
             console.log("Calling addImage with name:", imageName);
             
-            const image = sheet.shapes.addImage(pngDataUri);
+            const image = sheet.shapes.addImage(base64Image);
             image.name = imageName;
             console.log("Image shape created, calling sync...");
             
@@ -1009,6 +1014,11 @@ async function saveVegaChart() {
         console.log("PNG data URI created, length:", pngDataUri.length);
         console.log("PNG data URI prefix:", pngDataUri.substring(0, 50));
         
+        // Extract raw base64 string (Excel expects base64 only, not data URI)
+        const base64Image = pngDataUri.substring(pngDataUri.indexOf(',') + 1);
+        console.log("Base64 string extracted, length:", base64Image.length);
+        console.log("Base64 prefix (should be PNG signature):", base64Image.substring(0, 20));
+        
         console.log("Inserting image into Excel...");
         await Excel.run(async (context) => {
             const sheet = context.workbook.worksheets.getActiveWorksheet();
@@ -1017,7 +1027,7 @@ async function saveVegaChart() {
             const imageName = (document.getElementById("vega-chart-name") as HTMLInputElement).value || "VegaChart";
             console.log("Calling addImage with name:", imageName);
             
-            const image = sheet.shapes.addImage(pngDataUri);
+            const image = sheet.shapes.addImage(base64Image);
             image.name = imageName;
             console.log("Image shape created, calling sync...");
             
