@@ -646,6 +646,9 @@ async function renderVegaChart(tableName: string, spec: any, messageArea?: HTMLE
     const dataObjects = dt.objects();
     console.log(`Data fetched. Rows: ${dataObjects.length}`);
     
+    // Remove $schema to avoid CSP violations in Excel Online
+    delete spec.$schema;
+    
     // Inject data if not present or if placeholder used
     if (!spec.data || spec.data.name === "table") {
          spec.data = { values: dataObjects };
@@ -860,13 +863,26 @@ async function saveMermaidChart() {
         
         // Encode SVG to base64
         const base64 = btoa(unescape(encodeURIComponent(svg)));
+        console.log("Base64 encoded, length:", base64.length);
+        
+        const dataUri = `data:image/svg+xml;base64,${base64}`;
+        console.log("Data URI created, length:", dataUri.length);
+        console.log("Data URI prefix:", dataUri.substring(0, 50));
         
         console.log("Inserting image into Excel...");
         await Excel.run(async (context) => {
             const sheet = context.workbook.worksheets.getActiveWorksheet();
-            const image = sheet.shapes.addImage(`data:image/svg+xml;base64,${base64}`);
-            image.name = (document.getElementById("mermaid-chart-name") as HTMLInputElement).value || "MermaidDiagram";
+            console.log("Got active worksheet");
+            
+            const imageName = (document.getElementById("mermaid-chart-name") as HTMLInputElement).value || "MermaidDiagram";
+            console.log("Calling addImage with name:", imageName);
+            
+            const image = sheet.shapes.addImage(dataUri);
+            image.name = imageName;
+            console.log("Image shape created, calling sync...");
+            
             await context.sync();
+            console.log("Sync completed successfully");
         });
         
         if (messageArea) messageArea.innerText = "Diagram inserted into worksheet.";
@@ -949,6 +965,9 @@ async function saveVegaChart() {
         const specStr = (document.getElementById("vega-spec") as HTMLTextAreaElement).value;
         const spec = JSON.parse(specStr);
         
+        // Remove $schema to avoid CSP violations in Excel Online
+        delete spec.$schema;
+        
         // Re-inject data just in case
         const tableName = (document.getElementById("vega-table-select") as HTMLSelectElement).value;
         const dt = await getArqueroTableFromExcel(tableName);
@@ -958,20 +977,35 @@ async function saveVegaChart() {
         }
 
         console.log("Generating view for image export...");
-        const result = await vegaEmbed('#vega-preview-area', spec, { actions: false });
+        const result = await vegaEmbed('#vega-preview-area', spec, { actions: false, loader: { http: { credentials: 'same-origin' } } });
         const view = result.view;
         
         console.log("Converting to SVG...");
         const svg = await view.toSVG();
+        console.log("SVG generated, length:", svg.length);
+        
         // Encode SVG to base64, handling unicode characters correctly
         const base64 = btoa(unescape(encodeURIComponent(svg)));
+        console.log("Base64 encoded, length:", base64.length);
+        
+        const dataUri = `data:image/svg+xml;base64,${base64}`;
+        console.log("Data URI created, length:", dataUri.length);
+        console.log("Data URI prefix:", dataUri.substring(0, 50));
         
         console.log("Inserting image into Excel...");
         await Excel.run(async (context) => {
             const sheet = context.workbook.worksheets.getActiveWorksheet();
-            const image = sheet.shapes.addImage(`data:image/svg+xml;base64,${base64}`);
-            image.name = (document.getElementById("vega-chart-name") as HTMLInputElement).value || "VegaChart";
+            console.log("Got active worksheet");
+            
+            const imageName = (document.getElementById("vega-chart-name") as HTMLInputElement).value || "VegaChart";
+            console.log("Calling addImage with name:", imageName);
+            
+            const image = sheet.shapes.addImage(dataUri);
+            image.name = imageName;
+            console.log("Image shape created, calling sync...");
+            
             await context.sync();
+            console.log("Sync completed successfully");
         });
         
         if (messageArea) messageArea.innerText = "Chart inserted into worksheet.";
