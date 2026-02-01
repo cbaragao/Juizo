@@ -861,13 +861,33 @@ async function saveMermaidChart() {
             }
         }
         
-        // Encode SVG to base64
-        const base64 = btoa(unescape(encodeURIComponent(svg)));
-        console.log("Base64 encoded, length:", base64.length);
+        console.log("Converting SVG to PNG...");
+        // Create an image element to load the SVG
+        const img = new Image();
+        const svgBlob = new Blob([svg], { type: 'image/svg+xml;charset=utf-8' });
+        const svgUrl = URL.createObjectURL(svgBlob);
         
-        const dataUri = `data:image/svg+xml;base64,${base64}`;
-        console.log("Data URI created, length:", dataUri.length);
-        console.log("Data URI prefix:", dataUri.substring(0, 50));
+        // Wait for image to load
+        await new Promise((resolve, reject) => {
+            img.onload = resolve;
+            img.onerror = reject;
+            img.src = svgUrl;
+        });
+        
+        // Create canvas and draw the image
+        const canvas = document.createElement('canvas');
+        canvas.width = img.width || 800;
+        canvas.height = img.height || 600;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0);
+        
+        // Clean up
+        URL.revokeObjectURL(svgUrl);
+        
+        // Convert canvas to PNG data URL
+        const pngDataUri = canvas.toDataURL('image/png');
+        console.log("PNG data URI created, length:", pngDataUri.length);
+        console.log("PNG data URI prefix:", pngDataUri.substring(0, 50));
         
         console.log("Inserting image into Excel...");
         await Excel.run(async (context) => {
@@ -877,7 +897,7 @@ async function saveMermaidChart() {
             const imageName = (document.getElementById("mermaid-chart-name") as HTMLInputElement).value || "MermaidDiagram";
             console.log("Calling addImage with name:", imageName);
             
-            const image = sheet.shapes.addImage(dataUri);
+            const image = sheet.shapes.addImage(pngDataUri);
             image.name = imageName;
             console.log("Image shape created, calling sync...");
             
@@ -980,17 +1000,14 @@ async function saveVegaChart() {
         const result = await vegaEmbed('#vega-preview-area', spec, { actions: false, loader: { http: { credentials: 'same-origin' } } });
         const view = result.view;
         
-        console.log("Converting to SVG...");
-        const svg = await view.toSVG();
-        console.log("SVG generated, length:", svg.length);
+        console.log("Converting to PNG...");
+        const canvas = await view.toCanvas();
+        console.log("Canvas created, width:", canvas.width, "height:", canvas.height);
         
-        // Encode SVG to base64, handling unicode characters correctly
-        const base64 = btoa(unescape(encodeURIComponent(svg)));
-        console.log("Base64 encoded, length:", base64.length);
-        
-        const dataUri = `data:image/svg+xml;base64,${base64}`;
-        console.log("Data URI created, length:", dataUri.length);
-        console.log("Data URI prefix:", dataUri.substring(0, 50));
+        // Convert canvas to PNG data URL
+        const pngDataUri = canvas.toDataURL('image/png');
+        console.log("PNG data URI created, length:", pngDataUri.length);
+        console.log("PNG data URI prefix:", pngDataUri.substring(0, 50));
         
         console.log("Inserting image into Excel...");
         await Excel.run(async (context) => {
@@ -1000,7 +1017,7 @@ async function saveVegaChart() {
             const imageName = (document.getElementById("vega-chart-name") as HTMLInputElement).value || "VegaChart";
             console.log("Calling addImage with name:", imageName);
             
-            const image = sheet.shapes.addImage(dataUri);
+            const image = sheet.shapes.addImage(pngDataUri);
             image.name = imageName;
             console.log("Image shape created, calling sync...");
             
