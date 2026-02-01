@@ -45,7 +45,7 @@ Generate flowcharts, sequence diagrams, and other diagram types using [Mermaid](
 
 - Create diagrams with simple text-based syntax
 - Save diagram specifications for reuse
-- Export diagrams as SVG images to Excel
+- Export diagrams as PNG images to Excel
 
 **Example:**
 ```mermaid
